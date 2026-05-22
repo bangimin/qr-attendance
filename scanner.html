@@ -56,8 +56,17 @@
     result.innerHTML = '⏳ Memproses...';
 
     fetch(`${APPS_SCRIPT_URL}?qr=${encodeURIComponent(decodedText)}`)
-      .then(res => res.json())
-      .then(response => {
+      .then(res => {
+        // Cek apakah response OK
+        if (!res.ok) {
+          throw new Error(`HTTP error: ${res.status}`);
+        }
+        return res.text(); // pakai .text() dulu, bukan .json()
+      })
+      .then(text => {
+        console.log('Raw response:', text); // lihat di DevTools
+        const response = JSON.parse(text);
+
         if (response.success) {
           result.className = 'success';
           result.innerHTML = `✓ ${response.message}<br><br>${response.nama}`;
@@ -70,8 +79,9 @@
         setTimeout(resetScanner, 2000);
       })
       .catch(err => {
+        console.error('Fetch error:', err); // lihat di DevTools
         result.className = 'error';
-        result.innerHTML = `✗ Gagal konek ke server`;
+        result.innerHTML = `✗ Gagal konek: ${err.message}`; // tampilkan error spesifik
         setTimeout(resetScanner, 3000);
       });
   }
