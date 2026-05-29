@@ -27,6 +27,24 @@
     .error   { background: #f8d7da; color: #721c24; }
     .loading { background: #fff3cd; color: #856404; }
 
+    /* Dropdown */
+    #sheet-selector {
+      margin-bottom: 20px;
+    }
+    #sheet-selector label {
+      font-size: 14px;
+      color: #555;
+      margin-right: 8px;
+    }
+    #sheet-selector select {
+      padding: 8px 16px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+    }
+
     /* Statistik */
     #statistik {
       margin-top: 24px;
@@ -67,8 +85,6 @@
       color: #888;
       margin-top: 4px;
     }
-
-    /* Progress bar */
     .progress-bar-bg {
       background: #e9ecef;
       border-radius: 999px;
@@ -87,11 +103,22 @@
 <body>
 
 <h2>Scanner Wisuda</h2>
+
+<!-- Dropdown pilih sheet -->
+<div id="sheet-selector">
+  <label>Sesi:</label>
+  <select id="selected-sheet" onchange="onSheetChange()">
+    <option value="ayah">Ayah</option>
+    <option value="ibu">Ibu</option>
+    <option value="makan">Makan</option>
+  </select>
+</div>
+
 <div id="reader"></div>
 <div id="result"></div>
 
 <div id="statistik">
-  <h3>Statistik Kehadiran</h3>
+  <h3 id="stat-title">Statistik — Ayah</h3>
   <div class="stat-row">
     <div class="stat-item">
       <span class="stat-number hadir" id="stat-hadir">-</span>
@@ -112,9 +139,26 @@
 </div>
 
 <script>
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEG5x9RKqr2Dnb_o6sSh-QzZ6iiVVEiWIqQgdu-9fTytgw_O29dPQVk8Mv84LzG_g/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/XXXXXXX/exec";
 
   let scanning = true;
+
+  function getSelectedSheet() {
+    return document.getElementById('selected-sheet').value;
+  }
+
+  function onSheetChange() {
+    // Update judul statistik
+    const label = document.getElementById('selected-sheet').selectedOptions[0].text;
+    document.getElementById('stat-title').textContent = `Statistik — ${label}`;
+
+    // Reset statistik lalu load ulang
+    document.getElementById('stat-hadir').textContent = '-';
+    document.getElementById('stat-total').textContent = '-';
+    document.getElementById('stat-persen').textContent = '-';
+    document.getElementById('progress-bar').style.width = '0%';
+    loadStatistik();
+  }
 
   function updateStatistik(hadir, total) {
     const persen = total > 0 ? ((hadir / total) * 100).toFixed(1) : 0;
@@ -122,6 +166,19 @@
     document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-persen').textContent = persen + '%';
     document.getElementById('progress-bar').style.width = persen + '%';
+  }
+
+  function loadStatistik() {
+    const sheet = getSelectedSheet();
+    fetch(`${APPS_SCRIPT_URL}?action=statistik&sheet=${sheet}`)
+      .then(res => res.text())
+      .then(text => {
+        const response = JSON.parse(text);
+        if (response.hadir !== undefined) {
+          updateStatistik(response.hadir, response.total);
+        }
+      })
+      .catch(() => {});
   }
 
   function resetScanner() {
@@ -139,7 +196,9 @@
     result.className = 'loading';
     result.innerHTML = '⏳ Memproses...';
 
-    fetch(`${APPS_SCRIPT_URL}?qr=${encodeURIComponent(decodedText)}`)
+    const sheet = getSelectedSheet();
+
+    fetch(`${APPS_SCRIPT_URL}?qr=${encodeURIComponent(decodedText)}&sheet=${sheet}`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
         return res.text();
@@ -155,7 +214,6 @@
           result.innerHTML = `✗ ${response.message}<br><br>${response.nama || ''}`;
         }
 
-        // Update statistik kalau data tersedia
         if (response.hadir !== undefined && response.total !== undefined) {
           updateStatistik(response.hadir, response.total);
         }
@@ -191,16 +249,8 @@
     });
   });
 
-  // Load statistik awal saat halaman dibuka
-  fetch(`${APPS_SCRIPT_URL}?action=statistik`)
-    .then(res => res.text())
-    .then(text => {
-      const response = JSON.parse(text);
-      if (response.hadir !== undefined) {
-        updateStatistik(response.hadir, response.total);
-      }
-    })
-    .catch(() => {});
+  // Load statistik awal
+  loadStatistik();
 </script>
 
 </body>
