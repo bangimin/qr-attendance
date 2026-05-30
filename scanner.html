@@ -23,11 +23,15 @@
       font-size: 24px;
       font-weight: bold;
     }
+    #last-scan {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #333;
+    }
     .success { background: #d4edda; color: #155724; }
     .error   { background: #f8d7da; color: #721c24; }
     .loading { background: #fff3cd; color: #856404; }
 
-    /* Dropdown */
     #sheet-selector {
       margin-bottom: 20px;
     }
@@ -45,7 +49,6 @@
       cursor: pointer;
     }
 
-    /* Card statistik */
     .stat-card {
       margin-top: 20px;
       padding: 20px;
@@ -99,7 +102,6 @@
       width: 0%;
     }
 
-    /* Tabel per jenjang & kelas */
     .stat-table {
       width: 100%;
       border-collapse: collapse;
@@ -127,8 +129,8 @@
       font-size: 12px;
       font-weight: bold;
     }
-    .badge-smp { background: #cfe2ff; color: #084298; }
-    .badge-sma { background: #d1e7dd; color: #0a3622; }
+    .badge-smp   { background: #cfe2ff; color: #084298; }
+    .badge-sma   { background: #d1e7dd; color: #0a3622; }
     .badge-other { background: #e2e3e5; color: #383d41; }
   </style>
 </head>
@@ -139,17 +141,17 @@
 <div id="sheet-selector">
   <label>Sesi:</label>
   <select id="selected-sheet" onchange="onSheetChange()">
+    <option value="peserta">Peserta</option>
     <option value="ayah">Ayah</option>
     <option value="ibu">Ibu</option>
-    <option value="peserta">Peserta</option>
     <option value="makan">Makan</option>
   </select>
 </div>
 
 <div id="reader"></div>
 <div id="result"></div>
+<div id="last-scan"></div>
 
-<!-- Statistik total -->
 <div class="stat-card">
   <h3 id="stat-title">Statistik — Peserta</h3>
   <div class="stat-row">
@@ -171,7 +173,6 @@
   </div>
 </div>
 
-<!-- Statistik per jenjang -->
 <div class="stat-card">
   <h3>Statistik Per Jenjang</h3>
   <table class="stat-table">
@@ -189,7 +190,6 @@
   </table>
 </div>
 
-<!-- Statistik per kelas -->
 <div class="stat-card">
   <h3>Statistik Per Kelas</h3>
   <table class="stat-table">
@@ -230,21 +230,21 @@
   }
 
   function getBadgeClass(jenjang) {
-    const j = jenjang.toUpperCase();
+    const j = (jenjang || '').toUpperCase();
     if (j === 'SMP') return 'badge badge-smp';
     if (j === 'SMA') return 'badge badge-sma';
     return 'badge badge-other';
   }
 
   function updateStatistik(data) {
-    // Total
+    if (data.total === undefined) return;
+
     const persen = data.total > 0 ? ((data.hadir / data.total) * 100).toFixed(1) : 0;
     document.getElementById('stat-hadir').textContent = data.hadir;
     document.getElementById('stat-total').textContent = data.total;
     document.getElementById('stat-persen').textContent = persen + '%';
     document.getElementById('progress-bar').style.width = persen + '%';
 
-    // Per jenjang
     const jenjangBody = document.getElementById('stat-jenjang-body');
     if (data.jenjang && Object.keys(data.jenjang).length > 0) {
       jenjangBody.innerHTML = Object.entries(data.jenjang)
@@ -262,7 +262,6 @@
       jenjangBody.innerHTML = '<tr><td colspan="4" style="color:#aaa">Tidak ada data</td></tr>';
     }
 
-    // Per kelas
     const kelasBody = document.getElementById('stat-kelas-body');
     if (data.kelas && Object.keys(data.kelas).length > 0) {
       kelasBody.innerHTML = Object.entries(data.kelas)
@@ -308,6 +307,8 @@
     result.className = 'loading';
     result.innerHTML = '⏳ Memproses...';
 
+    document.getElementById('last-scan').innerHTML = '';
+
     const sheet = getSelectedSheet();
 
     fetch(`${APPS_SCRIPT_URL}?qr=${encodeURIComponent(decodedText)}&sheet=${sheet}`)
@@ -320,14 +321,17 @@
 
         if (response.success) {
           result.className = 'success';
-          result.innerHTML = `✓ ${response.message}<br><br>${response.nama}`;
+          result.innerHTML = '✓ ' + response.message;
         } else {
           result.className = 'error';
-          result.innerHTML = `✗ ${response.message}<br><br>${response.nama || ''}`;
+          result.innerHTML = '✗ ' + response.message;
+        }
+
+        if (response.nama) {
+          document.getElementById('last-scan').innerHTML = `<b>${response.nama}</b>`;
         }
 
         updateStatistik(response);
-
         if (navigator.vibrate) navigator.vibrate(200);
         setTimeout(resetScanner, 2000);
       })
@@ -359,7 +363,6 @@
     });
   });
 
-  // Load statistik awal
   loadStatistik();
 </script>
 
