@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kirim Undangan Wisuda</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --hijau: #25D366;
+    --biru: #1F4E79;
+    --bg: #f0f2f5;
+    --card: #fff;
+    --text: #1a1a2e;
+    --sub: #6b7280;
+    --border: #e5e7eb;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── LOGIN ── */
+  .login-wrap {
+    flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .login-box {
+    background: white; border-radius: 20px; padding: 36px 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10); width: 100%; max-width: 360px; text-align: center;
+  }
+  .login-box .logo { font-size: 48px; margin-bottom: 12px; }
+  .login-box h1 { font-size: 20px; font-weight: 800; color: var(--biru); margin-bottom: 4px; }
+  .login-box p { font-size: 13px; color: var(--sub); margin-bottom: 28px; }
+  .login-box input {
+    width: 100%; padding: 13px 16px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 16px; margin-bottom: 12px;
+    text-align: center; letter-spacing: 3px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .login-box input:focus { border-color: var(--biru); }
+  .login-box input.error { border-color: #ef4444; animation: shake 0.3s; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}
+  }
+  .btn-login {
+    width: 100%; padding: 14px; background: var(--biru); color: white;
+    border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-login:active { opacity: 0.85; }
+  .err-msg { font-size: 13px; color: #ef4444; margin-top: 10px; min-height: 18px; }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--biru); color: white; padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-title { font-size: 16px; font-weight: 700; }
+  .header-sub { font-size: 11px; opacity: 0.7; margin-top: 1px; }
+  .btn-logout {
+    background: rgba(255,255,255,0.15); border: none; color: white;
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+  }
+
+  /* ── SELECTOR ── */
+  .selector-wrap {
+    background: white; padding: 12px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .selector-wrap label { font-size: 13px; color: var(--sub); white-space: nowrap; }
+  select {
+    flex: 1; padding: 9px 32px 9px 12px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 15px; font-weight: 600; color: var(--biru);
+    background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231F4E79' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;
+    appearance: none; cursor: pointer;
+  }
+  select:focus { outline: none; border-color: var(--biru); }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { background: white; padding: 10px 20px 12px; border-bottom: 1px solid var(--border); }
+  .progress-info { display: flex; justify-content: space-between; font-size: 12px; color: var(--sub); margin-bottom: 6px; }
+  .progress-info strong { color: var(--text); }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--hijau), #128c7e); border-radius: 99px; transition: width 0.4s ease; }
+
+  /* ── CARDS ── */
+  .cards-container { flex: 1; padding: 20px 16px; display: flex; align-items: flex-start; justify-content: center; }
+  .card-stack { position: relative; width: 100%; max-width: 460px; min-height: 460px; }
+  .card {
+    position: absolute; width: 100%; background: var(--card);
+    border-radius: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    padding: 22px 20px 18px; cursor: grab; user-select: none;
+    touch-action: pan-y; will-change: transform;
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s;
+  }
+  .card.dragging { cursor: grabbing; transition: none; }
+  .card.swipe-out { transform: translateX(120%) rotate(12deg) !important; opacity: 0; transition: transform 0.35s ease, opacity 0.3s ease !important; }
+  .card.back-card { transform: scale(0.95) translateY(12px); opacity: 0.5; z-index: 0; pointer-events: none; }
+  .card.front-card { z-index: 1; }
+
+  .card-no { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .card-nama { font-size: 22px; font-weight: 800; color: var(--biru); margin-bottom: 4px; }
+  .card-info { font-size: 13px; color: var(--sub); margin-bottom: 12px; }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; margin-bottom: 14px; }
+  .belum { background: #fef3c7; color: #92400e; }
+  .terkirim { background: #d1fae5; color: #065f46; }
+  .gagal { background: #fee2e2; color: #991b1b; }
+
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+  .pesan-label { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .pesan-box {
+    background: #f8fafc; border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; font-size: 13px; line-height: 1.6; color: var(--text);
+    max-height: 150px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; margin-bottom: 14px;
+  }
+  .actions { display: flex; gap: 10px; }
+  .btn { flex: 1; padding: 12px 8px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity 0.15s, transform 0.1s; }
+  .btn:active { opacity: 0.85; transform: scale(0.97); }
+  .btn-wa { background: var(--hijau); color: white; }
+  .btn-copy { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
+
+  .swipe-hint { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 0 4px; font-size: 12px; color: var(--sub); }
+  .swipe-arrow { font-size: 18px; animation: bounce 1.5s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateX(0)} 50%{transform:translateX(5px)} }
+
+  /* ── BOTTOM ── */
+  .bottom-action { padding: 12px 16px 20px; background: white; border-top: 1px solid var(--border); }
+  .btn-terkirim {
+    width: 100%; padding: 15px; border: none; border-radius: 14px;
+    font-size: 16px; font-weight: 800; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, var(--hijau), #128c7e); color: white;
+    box-shadow: 0 4px 12px rgba(37,211,102,0.3); transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn-terkirim:active { opacity: 0.9; transform: scale(0.98); }
+  .btn-terkirim.sudah { background: #d1fae5; color: #065f46; box-shadow: none; }
+
+  /* ── STATE BOXES ── */
+  .state-box { text-align: center; padding: 60px 20px; color: var(--sub); }
+  .state-box .icon { font-size: 48px; margin-bottom: 12px; }
+  .state-box p { font-size: 15px; }
+  .selesai-wrap { text-align: center; padding: 40px 20px; }
+  .selesai-wrap .icon { font-size: 64px; margin-bottom: 16px; }
+  .selesai-wrap h2 { font-size: 22px; font-weight: 800; color: var(--biru); margin-bottom: 8px; }
+  .selesai-wrap p { font-size: 14px; color: var(--sub); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1a2e; color: white; padding: 10px 20px;
+    border-radius: 99px; font-size: 13px; font-weight: 600;
+    opacity: 0; transition: all 0.3s ease; pointer-events: none;
+    white-space: nowrap; z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="logo">🎓</div>
+    <h1>Undangan Wisuda</h1>
+    <p>Masukkan password untuk melanjutkan</p>
+    <input type="password" id="inputPass" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="btn-login" onclick="doLogin()">Masuk</button>
+    <div class="err-msg" id="errMsg"></div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="appWrap" class="hidden" style="display:flex;flex-direction:column;flex:1;min-height:100vh;">
+  <div class="header">
+    <div>
+      <div class="header-title">🎓 Undangan Wisuda</div>
+      <div class="header-sub" id="headerSub">Pilih kelas untuk mulai</div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">Keluar</button>
+  </div>
+
+  <div class="selector-wrap">
+    <label>Kelas</label>
+    <select id="selKelas" onchange="muatKelas()">
+      <option value="">— pilih kelas —</option>
+    </select>
+  </div>
+
+  <div class="progress-wrap hidden" id="progressWrap">
+    <div class="progress-info">
+      <span>Terkirim: <strong id="jmlTerkirim">0</strong></span>
+      <span id="progLabel">0 / 0</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="cards-container" id="cardsContainer">
+    <div class="state-box">
+      <div class="icon">📋</div>
+      <p>Pilih kelas untuk mulai</p>
+    </div>
+  </div>
+
+  <div class="bottom-action hidden" id="bottomAction">
+    <button class="btn-terkirim" id="btnTerkirim" onclick="tandaiTerkirim()">
+      ✅ Tandai Terkirim & Lanjut
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG — ganti kedua nilai ini ───────────────────────────
+const API_URL  = "https://script.google.com/macros/s/AKfycbyQxtcECyCWqs2Sl6A1-f9Oq4pwVJnw4riP8xLtQeoW8Z8LBCFw1uUd137IIdo3HdF3/exec";
+const PASSWORD = "wisuda2026";
+
+let siswaList = [], currentIndex = 0, kelasAktif = '';
+
+// ── LOGIN ─────────────────────────────────────────────────────
+function doLogin() {
+  const val = document.getElementById('inputPass').value;
+  const inp = document.getElementById('inputPass');
+  if (val === PASSWORD) {
+    sessionStorage.setItem('auth', '1');
+    document.getElementById('loginWrap').classList.add('hidden');
+    const app = document.getElementById('appWrap');
+    app.classList.remove('hidden');
+    app.style.display = 'flex';
+    muatDaftarKelas();
+  } else {
+    inp.classList.add('error');
+    document.getElementById('errMsg').textContent = 'Password salah, coba lagi.';
+    setTimeout(() => inp.classList.remove('error'), 400);
+    inp.value = '';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('auth');
+  location.reload();
+}
+
+// Cek session saat reload
+window.onload = function() {
+  if (sessionStorage.getItem('auth') === '1') {
+    document.getElementById('loginWrap').classList.add('hidden');
+    const app = document.getElementById('appWrap');
+    app.classList.remove('hidden');
+    app.style.display = 'flex';
+    muatDaftarKelas();
+  }
+};
+
+// ── API CALLS ─────────────────────────────────────────────────
+async function api(params) {
+  const url = new URL(API_URL);
+  url.searchParams.set('pass', PASSWORD);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  return res.json();
+}
+
+async function apiPost(body) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ ...body, pass: PASSWORD }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+  return res.json();
+}
+
+// ── MUAT DAFTAR KELAS ─────────────────────────────────────────
+async function muatDaftarKelas() {
+  const result = await api({ action: 'getKelas' });
+  if (!result.ok) return;
+  const sel = document.getElementById('selKelas');
+  result.data.forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = 'Kelas ' + k;
+    sel.appendChild(opt);
+  });
+}
+
+// ── MUAT DATA SISWA ───────────────────────────────────────────
+async function muatKelas() {
+  kelasAktif = document.getElementById('selKelas').value;
+  if (!kelasAktif) return;
+  tampilState('⏳', 'Memuat data...');
+  const result = await api({ action: 'getSiswa', kelas: kelasAktif });
+  if (!result.ok) { tampilState('❌', 'Gagal memuat data'); return; }
+  siswaList = result.data;
+  currentIndex = 0;
+  document.getElementById('progressWrap').classList.remove('hidden');
+  document.getElementById('bottomAction').classList.remove('hidden');
+  document.getElementById('headerSub').textContent = 'Kelas ' + kelasAktif;
+  updateProgress();
+  renderKartu();
+}
+
+// ── RENDER KARTU ──────────────────────────────────────────────
+function renderKartu() {
+  const c = document.getElementById('cardsContainer');
+
+  if (!siswaList.length) {
+    tampilState('📭', 'Tidak ada data siswa');
+    document.getElementById('bottomAction').classList.add('hidden');
+    return;
+  }
+
+  if (currentIndex >= siswaList.length) {
+    c.innerHTML = `<div class="selesai-wrap">
+      <div class="icon">🎉</div>
+      <h2>Semua Selesai!</h2>
+      <p>Semua undangan kelas ${kelasAktif}<br>sudah diproses.</p>
+    </div>`;
+    document.getElementById('bottomAction').classList.add('hidden');
+    return;
+  }
+
+  const s = siswaList[currentIndex];
+  const next = siswaList[currentIndex + 1];
+  const stClass = s.status === 'Terkirim' ? 'terkirim' : s.status === 'Gagal' ? 'gagal' : 'belum';
+
+  c.innerHTML = `<div class="card-stack">
+    ${next ? `<div class="card back-card">
+      <div class="card-nama">${next.nama}</div>
+      <div class="card-info">${next.kelas} · ${next.jenjang}</div>
+    </div>` : ''}
+    <div class="card front-card" id="frontCard">
+      <div class="card-no">Siswa ${currentIndex + 1} dari ${siswaList.length}</div>
+      <div class="card-nama">${s.nama}</div>
+      <div class="card-info">${s.kelas} · ${s.jenjang}</div>
+      <span class="status-badge ${stClass}">${s.status}</span>
+      <div class="divider"></div>
+      <div class="pesan-label">Pesan</div>
+      <div class="pesan-box">${(s.pesan||'').replace(/</g,'&lt;')}</div>
+      <div class="actions">
+        <button class="btn btn-wa" onclick="bukaWA()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.123 1.526 5.858L0 24l6.335-1.502A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.522-5.166-1.427l-.371-.22-3.763.892.935-3.653-.242-.379A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Buka WA
+        </button>
+        <button class="btn btn-copy" onclick="copyPesan()">📋 Copy Pesan</button>
+      </div>
+    </div>
+  </div>
+  <div class="swipe-hint"><span class="swipe-arrow">→</span><span>Geser kanan untuk lanjut</span></div>`;
+
+  const btn = document.getElementById('btnTerkirim');
+  if (s.status === 'Terkirim') {
+    btn.className = 'btn-terkirim sudah';
+    btn.textContent = '✅ Sudah Terkirim — Lanjut →';
+  } else {
+    btn.className = 'btn-terkirim';
+    btn.innerHTML = '✅ Tandai Terkirim & Lanjut';
+  }
+
+  initSwipe();
+}
+
+// ── SWIPE ─────────────────────────────────────────────────────
+function initSwipe() {
+  const card = document.getElementById('frontCard');
+  if (!card) return;
+  let startX = 0, dx = 0, active = false;
+
+  const start = x => { startX = x; active = true; card.classList.add('dragging'); };
+  const move  = x => {
+    if (!active) return;
+    dx = x - startX;
+    if (dx > 0) card.style.transform = `translateX(${dx}px) rotate(${dx*0.04}deg)`;
+  };
+  const end   = () => {
+    if (!active) return;
+    active = false; card.classList.remove('dragging');
+    dx > 80 ? swipeOut() : (card.style.transform = '');
+    dx = 0;
+  };
+
+  card.addEventListener('mousedown',  e => start(e.clientX));
+  window.addEventListener('mousemove',e => { if (active) move(e.clientX); });
+  window.addEventListener('mouseup',  end);
+  card.addEventListener('touchstart', e => start(e.touches[0].clientX), {passive:true});
+  card.addEventListener('touchmove',  e => move(e.touches[0].clientX),  {passive:true});
+  card.addEventListener('touchend',   end);
+}
+
+function swipeOut() {
+  const card = document.getElementById('frontCard');
+  if (card) card.classList.add('swipe-out');
+  setTimeout(() => { currentIndex++; renderKartu(); updateProgress(); }, 350);
+}
+
+// ── AKSI ──────────────────────────────────────────────────────
+function bukaWA() {
+  const s = siswaList[currentIndex];
+  if (s?.bukaWa) window.open(s.bukaWa, '_blank');
+  else showToast('⚠️ Link WA tidak tersedia');
+}
+
+function copyPesan() {
+  const s = siswaList[currentIndex];
+  if (!s?.pesan) { showToast('⚠️ Pesan kosong'); return; }
+  navigator.clipboard.writeText(s.pesan)
+    .then(() => showToast('✅ Pesan disalin!'))
+    .catch(() => {
+      const t = document.createElement('textarea');
+      t.value = s.pesan; document.body.appendChild(t);
+      t.select(); document.execCommand('copy');
+      document.body.removeChild(t);
+      showToast('✅ Pesan disalin!');
+    });
+}
+
+async function tandaiTerkirim() {
+  const s = siswaList[currentIndex];
+  if (!s) return;
+  siswaList[currentIndex].status = 'Terkirim';
+  apiPost({ action: 'updateStatus', kelas: kelasAktif, rowIndex: s.rowIndex, status: 'Terkirim' });
+  showToast('✅ Terkirim!');
+  updateProgress();
+  setTimeout(swipeOut, 400);
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────
+function updateProgress() {
+  const total    = siswaList.length;
+  const terkirim = siswaList.filter(s => s.status === 'Terkirim').length;
+  const pct      = total ? Math.round(terkirim / total * 100) : 0;
+  document.getElementById('jmlTerkirim').textContent = terkirim;
+  document.getElementById('progLabel').textContent   = `${terkirim} / ${total}`;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function tampilState(icon, msg) {
+  document.getElementById('cardsContainer').innerHTML =
+    `<div class="state-box"><div class="icon">${icon}</div><p>${msg}</p></div>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
