@@ -83,9 +83,9 @@
   .divider { height:1px; background:#f0f0f0; margin:8px 0 10px; }
   .pesan-label { font-size:10px; font-weight:700; color:var(--sub); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:flex; align-items:center; gap:5px; }
   .pesan-box { background:var(--wa-light); border:1px solid rgba(37,211,102,0.2); border-radius:0 10px 10px 10px; padding:10px 12px; font-size:12px; line-height:1.55; color:var(--text); max-height:110px; overflow-y:auto; white-space:pre-wrap; word-break:break-word; margin-bottom:10px; }
-  .card-detail { font-size:12px; color:var(--sub); margin-bottom:10px; display:flex; flex-direction:column; gap:3px; }
-  .card-detail span { display:flex; align-items:center; gap:5px; }
-  .card-detail b { color:var(--text); }
+  .card-detail { font-size:12px; color:var(--sub); margin-bottom:10px; display:flex; flex-direction:column; gap:4px; }
+  .card-detail span { display:flex; align-items:flex-start; gap:5px; }
+  .card-detail b { color:var(--text); word-break:break-all; }
   .actions { display:flex; gap:8px; }
   .btn { flex:1; padding:10px 6px; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; transition:opacity 0.15s,transform 0.1s; }
   .btn:active { opacity:0.85; transform:scale(0.97); }
@@ -97,29 +97,31 @@
   .btn-terkirim.sudah { background:#d1fae5; color:#065f46; box-shadow:none; font-size:14px; }
   .swipe-hint { display:flex; align-items:center; justify-content:center; gap:8px; padding:10px 0 0; font-size:12px; color:#9ca3af; }
 
-  /* ── TAB DATA (TABEL) ── */
+  /* ── TAB DATA ── */
   .data-panel { flex:1; display:flex; flex-direction:column; padding:12px; overflow:hidden; }
   .data-info { font-size:12px; color:var(--sub); margin-bottom:8px; background:white; padding:8px 12px; border-radius:10px; line-height:1.5; }
   .data-info b { color:var(--wa-deep); }
+  .data-actions { display:flex; gap:8px; margin-bottom:8px; }
+  .btn-simpan-data { padding:9px 16px; background:linear-gradient(135deg,var(--wa),var(--wa-dark)); color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .btn-simpan-data:disabled { opacity:0.5; cursor:not-allowed; }
+  .dirty-badge { font-size:11px; color:#92400e; background:#fef3c7; padding:4px 10px; border-radius:99px; display:none; align-items:center; }
+  .dirty-badge.show { display:flex; }
   .table-wrap { flex:1; overflow:auto; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-  table { width:100%; border-collapse:collapse; background:white; min-width:420px; }
-  thead th { background:var(--wa-deep); color:white; padding:10px 10px; font-size:12px; font-weight:700; text-align:left; position:sticky; top:0; z-index:2; white-space:nowrap; }
-  thead th:first-child { width:36px; text-align:center; }
+  table { width:100%; border-collapse:collapse; background:white; min-width:400px; }
+  thead th { background:var(--wa-deep); color:white; padding:10px; font-size:12px; font-weight:700; text-align:left; position:sticky; top:0; z-index:2; white-space:nowrap; }
+  thead th:first-child { width:32px; text-align:center; }
   tbody tr:nth-child(even) { background:#f8fafb; }
   tbody tr:hover { background:#f0fdf4; }
   tbody td { padding:0; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
   tbody td:first-child { text-align:center; font-size:11px; color:var(--sub); font-weight:600; padding:0 6px; }
-  /* Nama cell — read only */
   .cell-nama { padding:9px 10px; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; }
-  /* Editable cells */
   .cell-input { width:100%; padding:9px 10px; border:none; background:transparent; font-size:13px; font-family:inherit; outline:none; color:var(--text); }
   .cell-input:focus { background:#fffbea; }
   .cell-input.filled { color:#065f46; }
-  tbody td.editing { background:#fffbea; box-shadow:inset 0 0 0 2px var(--wa); }
-  /* Paste overlay hint */
-  .paste-hint { text-align:center; padding:6px; font-size:11px; color:var(--sub); background:#f8fafb; border-top:1px solid var(--border); }
+  tbody td.td-hp, tbody td.td-und { min-width:140px; }
+  .paste-hint { text-align:center; padding:6px; font-size:11px; color:var(--sub); background:#f8fafb; border-top:1px solid var(--border); border-radius:0 0 12px 12px; }
 
-  /* ── STATE BOXES ── */
+  /* ── STATE ── */
   .state-box { text-align:center; padding:50px 20px; color:var(--sub); width:100%; }
   .state-box .icon { font-size:48px; margin-bottom:10px; }
   .selesai-wrap { text-align:center; padding:40px 20px; width:100%; }
@@ -194,12 +196,8 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" id="tabKirimBtn" onclick="gantiTab('kirim')">
-      📤 Kirim
-    </button>
-    <button class="tab-btn" id="tabDataBtn" onclick="gantiTab('data')">
-      📋 Data
-    </button>
+    <button class="tab-btn active" id="tabKirimBtn" onclick="gantiTab('kirim')">📤 Kirim</button>
+    <button class="tab-btn" id="tabDataBtn" onclick="gantiTab('data')">📋 Data</button>
   </div>
 
   <!-- Tab Kirim -->
@@ -220,7 +218,12 @@
   <div class="tab-panel" id="tabData">
     <div class="data-panel">
       <div class="data-info">
-        Klik sel <b>No HP</b> atau <b>Link Undangan</b> untuk edit. Bisa <b>paste dari Excel/Spreadsheet</b> — pilih sel pertama lalu Ctrl+V.
+        Klik sel <b>No HP</b> atau <b>Link Undangan</b> untuk edit langsung.<br>
+        Bisa <b>paste dari Excel</b> — copy 2 kolom (HP + Link) → klik sel HP baris pertama → Ctrl+V.
+      </div>
+      <div class="data-actions">
+        <button class="btn-simpan-data" id="btnSimpanData" onclick="simpanDataDirty()">💾 Simpan Perubahan</button>
+        <div class="dirty-badge" id="dirtyBadge">⚠️ Ada perubahan belum disimpan</div>
       </div>
       <div class="table-wrap">
         <table id="tabelData">
@@ -236,8 +239,8 @@
             <tr><td colspan="4" style="text-align:center;padding:30px;color:#9ca3af;">Pilih kelas untuk melihat data</td></tr>
           </tbody>
         </table>
+        <div class="paste-hint">💡 Copy 2 kolom dari Excel/Spreadsheet → klik sel HP baris pertama → Ctrl+V</div>
       </div>
-      <div class="paste-hint">💡 Tip: Copy 2 kolom (HP + Link) dari Excel → klik sel HP baris pertama → Ctrl+V</div>
     </div>
   </div>
 
@@ -263,12 +266,13 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ── CONFIG ────────────────────────────────────────────────────
 const API_URL  = "https://script.google.com/macros/s/AKfycbyQxtcECyCWqs2Sl6A1-f9Oq4pwVJnw4riP8xLtQeoW8Z8LBCFw1uUd137IIdo3HdF3/exec";
 const PASSWORD = "wisuda2026";
 
 let siswaList = [], currentIndex = 0, kelasAktif = '';
-let tabAktif = 'kirim';
-let dirtyRows = new Set(); // baris yang berubah di tab data
+let tabAktif  = 'kirim';
+let dirtyRows = new Set();
 
 // ── LOGIN ─────────────────────────────────────────────────────
 function doLogin() {
@@ -296,27 +300,17 @@ window.onload = () => {
   }
 };
 
-// ── API ───────────────────────────────────────────────────────
+// ── API (semua pakai GET) ─────────────────────────────────────
 async function api(params) {
   const url = new URL(API_URL);
   url.searchParams.set('pass', PASSWORD);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
   const res = await fetch(url.toString());
   return res.json();
-}
-async function apiPost(body) {
-  try {
-    await fetch(API_URL, {
-      method:'POST',
-      body: JSON.stringify({...body, pass: PASSWORD}),
-      headers:{'Content-Type':'application/json'}
-    });
-  } catch(e) {}
 }
 
 // ── TABS ──────────────────────────────────────────────────────
 async function gantiTab(tab) {
-  // Kalau pindah dari data ke kirim, simpan dulu yang dirty
   if (tabAktif === 'data' && tab === 'kirim' && dirtyRows.size > 0) {
     await simpanDataDirty();
   }
@@ -325,8 +319,8 @@ async function gantiTab(tab) {
   document.getElementById('tabDataBtn').classList.toggle('active',  tab === 'data');
   document.getElementById('tabKirim').classList.toggle('active', tab === 'kirim');
   document.getElementById('tabData').classList.toggle('active',  tab === 'data');
-
   if (tab === 'data' && kelasAktif) renderTabel();
+  if (tab === 'kirim' && kelasAktif) renderKartu();
 }
 
 // ── MUAT DATA ─────────────────────────────────────────────────
@@ -343,17 +337,15 @@ async function muatDaftarKelas() {
 }
 
 async function muatKelas() {
-  // Simpan data dirty dulu kalau ada
   if (dirtyRows.size > 0) await simpanDataDirty();
-
   kelasAktif = document.getElementById('selKelas').value;
   if (!kelasAktif) return;
-
   tampilState('⏳','Memuat data...');
   try {
     const r = await api({action:'getSiswa', kelas: kelasAktif});
     if (!r.ok) { tampilState('❌','Gagal memuat data'); return; }
     siswaList = r.data; currentIndex = 0; dirtyRows.clear();
+    updateDirtyBadge();
     document.getElementById('progressWrap').classList.remove('hidden');
     document.getElementById('headerSub').textContent = 'Kelas ' + kelasAktif;
     updateProgress();
@@ -372,20 +364,24 @@ function renderKartu() {
     return;
   }
 
-  const s = siswaList[currentIndex];
+  const s    = siswaList[currentIndex];
   const next = siswaList[currentIndex + 1];
-  const stClass = s.status==='Terkirim'?'terkirim':s.status==='Gagal'?'gagal':'belum';
-  const inisial = s.nama ? s.nama.charAt(0).toUpperCase() : '?';
+  const stClass  = s.status==='Terkirim'?'terkirim':s.status==='Gagal'?'gagal':'belum';
+  const inisial  = s.nama ? s.nama.charAt(0).toUpperCase() : '?';
   const pesanEsc = (s.pesan||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const hpInfo = s.hp ? `<span>📱 <b>${s.hp}</b></span>` : `<span style="color:#ef4444">📱 No HP belum diisi</span>`;
-  const undInfo = s.undangan ? `<span>🎟️ <b style="font-size:11px;word-break:break-all">${s.undangan}</b></span>` : `<span style="color:#9ca3af">🎟️ Link undangan belum diisi</span>`;
+  const hpInfo   = s.hp
+    ? `<span>📱 <b>${s.hp}</b></span>`
+    : `<span style="color:#ef4444">📱 No HP belum diisi — isi di tab Data</span>`;
+  const undInfo  = s.undangan
+    ? `<span>🎟️ <b style="font-size:11px">${s.undangan}</b></span>`
+    : `<span style="color:#9ca3af">🎟️ Link undangan belum diisi</span>`;
 
   const stackWrap = document.createElement('div');
   stackWrap.style.cssText = 'width:100%;max-width:480px;display:flex;flex-direction:column;';
 
   const stackEl = document.createElement('div');
   stackEl.className = 'card-stack';
-  stackEl.style.cssText = 'position:relative;width:100%;min-height:360px;';
+  stackEl.style.cssText = 'position:relative;width:100%;min-height:350px;';
 
   if (next) {
     const bc = document.createElement('div');
@@ -417,7 +413,7 @@ function renderKartu() {
     <div class="pesan-box">${pesanEsc}</div>
     <div class="actions">
       <button class="btn btn-wa" onclick="bukaWA()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.123 1.526 5.858L0 24l6.335-1.502A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.522-5.166-1.427l-.371-.22-3.763.892.935-3.653-.242-.379A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.123 1.526 5.858L0 24l6.335-1.502A11.955 11.955 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.522-5.166-1.427l-.371-.22-3.763.892.935-3.653-.242-.379A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
         Buka WA
       </button>
       <button class="btn btn-copy" onclick="copyPesan()">📋 Copy Pesan</button>
@@ -430,7 +426,7 @@ function renderKartu() {
   const btnT = document.createElement('button');
   btnT.id = 'btnTerkirim'; btnT.onclick = tandaiTerkirim;
   btnT.className = s.status==='Terkirim' ? 'btn-terkirim sudah' : 'btn-terkirim';
-  btnT.innerHTML   = s.status==='Terkirim' ? '✅ Sudah Terkirim — Lanjut →' : '✅ Tandai Terkirim & Lanjut';
+  btnT.innerHTML  = s.status==='Terkirim' ? '✅ Sudah Terkirim — Lanjut →' : '✅ Tandai Terkirim & Lanjut';
   btnWrap.appendChild(btnT);
   stackWrap.appendChild(btnWrap);
 
@@ -450,15 +446,17 @@ function renderTabel() {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#9ca3af;">Tidak ada data</td></tr>';
     return;
   }
-  tbody.innerHTML = siswaList.map((s, i) => `
+  tbody.innerHTML = siswaList.map((s,i) => `
     <tr id="row-${i}">
       <td>${i+1}</td>
       <td><div class="cell-nama">${s.nama}</div></td>
       <td class="td-hp"><input class="cell-input ${s.hp?'filled':''}" data-idx="${i}" data-field="hp"
-        value="${s.hp||''}" placeholder="628xxx" onchange="onCellChange(${i},'hp',this.value)"
+        value="${(s.hp||'').replace(/"/g,'&quot;')}" placeholder="628xxx"
+        onchange="onCellChange(${i},'hp',this.value)"
         onpaste="onPaste(event,${i},'hp')"></td>
       <td class="td-und"><input class="cell-input ${s.undangan?'filled':''}" data-idx="${i}" data-field="und"
-        value="${s.undangan||''}" placeholder="https://..." onchange="onCellChange(${i},'und',this.value)"
+        value="${(s.undangan||'').replace(/"/g,'&quot;')}" placeholder="https://..."
+        onchange="onCellChange(${i},'und',this.value)"
         onpaste="onPaste(event,${i},'und')"></td>
     </tr>`).join('');
 }
@@ -468,7 +466,7 @@ function onCellChange(idx, field, val) {
   if (field === 'hp')  siswaList[idx].hp       = val;
   if (field === 'und') siswaList[idx].undangan  = val;
   dirtyRows.add(idx);
-  // Update warna
+  updateDirtyBadge();
   const input = document.querySelector(`input[data-idx="${idx}"][data-field="${field}"]`);
   if (input) input.classList.toggle('filled', val.length > 0);
 }
@@ -477,42 +475,55 @@ function onCellChange(idx, field, val) {
 function onPaste(e, startIdx, startField) {
   e.preventDefault();
   const text = (e.clipboardData || window.clipboardData).getData('text');
-  // Split baris (enter) dan kolom (tab)
-  const rows = text.trim().split(/\r?\n/);
+  const rows  = text.trim().split(/\r?\n/);
   const fields = ['hp','und'];
   const startFieldIdx = fields.indexOf(startField);
 
   rows.forEach((row, ri) => {
     const cols = row.split('\t');
     cols.forEach((val, ci) => {
-      const fieldIdx = startFieldIdx + ci;
-      const siswaIdx = startIdx + ri;
+      const fieldIdx  = startFieldIdx + ci;
+      const siswaIdx  = startIdx + ri;
       if (fieldIdx >= fields.length || siswaIdx >= siswaList.length) return;
-      const field = fields[fieldIdx];
       val = val.trim();
-      if (field === 'hp')  siswaList[siswaIdx].hp       = val;
-      if (field === 'und') siswaList[siswaIdx].undangan  = val;
+      if (fields[fieldIdx] === 'hp')  siswaList[siswaIdx].hp       = val;
+      if (fields[fieldIdx] === 'und') siswaList[siswaIdx].undangan  = val;
       dirtyRows.add(siswaIdx);
     });
   });
-  renderTabel(); // re-render tabel dengan data baru
+  renderTabel();
+  updateDirtyBadge();
   showToast(`✅ ${rows.length} baris berhasil di-paste`);
 }
 
 // ── SIMPAN DATA DIRTY ─────────────────────────────────────────
 async function simpanDataDirty() {
-  if (!dirtyRows.size) return;
+  if (!dirtyRows.size) { showToast('Tidak ada perubahan'); return; }
+  const btn = document.getElementById('btnSimpanData');
+  btn.textContent = '⏳ Menyimpan...'; btn.disabled = true;
   showToast('💾 Menyimpan data...');
-  const promises = [...dirtyRows].map(idx => {
+
+  // Kirim satu per satu secara berurutan (hindari throttle Apps Script)
+  for (const idx of dirtyRows) {
     const s = siswaList[idx];
-    return apiPost({
-      action:'updateSiswa', kelas:kelasAktif,
-      rowIndex:s.rowIndex, hp:s.hp||'', undangan:s.undangan||''
-    });
-  });
-  await Promise.all(promises);
+    try {
+      await api({
+        action: 'updateSiswa',
+        kelas: kelasAktif,
+        rowIndex: s.rowIndex,
+        hp: s.hp || '',
+        undangan: s.undangan || ''
+      });
+    } catch(e) {}
+  }
   dirtyRows.clear();
+  updateDirtyBadge();
+  btn.textContent = '💾 Simpan Perubahan'; btn.disabled = false;
   showToast('✅ Data tersimpan!');
+}
+
+function updateDirtyBadge() {
+  document.getElementById('dirtyBadge').classList.toggle('show', dirtyRows.size > 0);
 }
 
 // ── SWIPE ─────────────────────────────────────────────────────
@@ -571,26 +582,31 @@ function copyPesan() {
 }
 async function tandaiTerkirim() {
   const s = siswaList[currentIndex]; if(!s) return;
-  siswaList[currentIndex].status='Terkirim';
-  apiPost({action:'updateStatus',kelas:kelasAktif,rowIndex:s.rowIndex,status:'Terkirim'});
+  siswaList[currentIndex].status = 'Terkirim';
+  api({action:'updateStatus', kelas:kelasAktif, rowIndex:s.rowIndex, status:'Terkirim'});
   showToast('✅ Terkirim!'); updateProgress(); setTimeout(swipeKanan,400);
 }
 
 // ── TEMPLATE ──────────────────────────────────────────────────
 async function bukaModalTemplate() {
-  try { const r=await api({action:'getTemplate'}); document.getElementById('templateArea').value=r.ok?r.data:''; }
-  catch(e){ document.getElementById('templateArea').value=''; }
+  document.getElementById('templateArea').value = 'Memuat...';
   document.getElementById('modalTemplate').classList.add('show');
+  try {
+    const r = await api({action:'getTemplate'});
+    document.getElementById('templateArea').value = r.ok ? r.data : '';
+  } catch(e) {
+    document.getElementById('templateArea').value = '';
+  }
 }
 function tutupModalTemplate(){ document.getElementById('modalTemplate').classList.remove('show'); }
 function tutupModalJikaOverlay(e){ if(e.target===document.getElementById('modalTemplate')) tutupModalTemplate(); }
 async function simpanTemplate(){
-  const tpl=document.getElementById('templateArea').value.trim();
+  const tpl = document.getElementById('templateArea').value.trim();
   if(!tpl){ showToast('⚠️ Template kosong'); return; }
-  const btn=document.getElementById('btnSimpanTpl');
+  const btn = document.getElementById('btnSimpanTpl');
   btn.textContent='Menyimpan...'; btn.disabled=true;
   try {
-    await apiPost({action:'updateTemplate',template:tpl});
+    await api({action:'updateTemplate', template: encodeURIComponent(tpl)});
     showToast('✅ Template disimpan!');
     tutupModalTemplate();
     if(kelasAktif) await muatKelas();
