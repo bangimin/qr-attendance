@@ -196,8 +196,8 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" id="tabKirimBtn" onclick="gantiTab('kirim')">📤 Kirim</button>
-    <button class="tab-btn" id="tabDataBtn" onclick="gantiTab('data')">📋 Data</button>
+    <button class="tab-btn active" id="tabKirimBtn" onclick="gantiTab('kirim')">Kirim</button>
+    <button class="tab-btn" id="tabDataBtn" onclick="gantiTab('data')">Data</button>
   </div>
 
   <!-- Tab Kirim -->
@@ -217,12 +217,8 @@
   <!-- Tab Data -->
   <div class="tab-panel" id="tabData">
     <div class="data-panel">
-      <div class="data-info">
-        Klik sel <b>No HP</b> atau <b>Link Undangan</b> untuk edit langsung.<br>
-        Bisa <b>paste dari Excel</b> — copy 2 kolom (HP + Link) → klik sel HP baris pertama → Ctrl+V.
-      </div>
       <div class="data-actions">
-        <button class="btn-simpan-data" id="btnSimpanData" onclick="simpanDataDirty()">💾 Simpan Perubahan</button>
+        <button class="btn-simpan-data" id="btnSimpanData" onclick="simpanDataDirty()">Simpan Perubahan</button>
         <div class="dirty-badge" id="dirtyBadge">⚠️ Ada perubahan belum disimpan</div>
       </div>
       <div class="table-wrap">
@@ -239,7 +235,7 @@
             <tr><td colspan="4" style="text-align:center;padding:30px;color:#9ca3af;">Pilih kelas untuk melihat data</td></tr>
           </tbody>
         </table>
-        <div class="paste-hint">💡 Copy 2 kolom dari Excel/Spreadsheet → klik sel HP baris pertama → Ctrl+V</div>
+        <div class="paste-hint"></div>
       </div>
     </div>
   </div>
@@ -370,11 +366,11 @@ function renderKartu() {
   const inisial  = s.nama ? s.nama.charAt(0).toUpperCase() : '?';
   const pesanEsc = (s.pesan||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const hpInfo   = s.hp
-    ? `<span>📱 <b>${s.hp}</b></span>`
-    : `<span style="color:#ef4444">📱 No HP belum diisi — isi di tab Data</span>`;
+    ? `<span><b>${s.hp}</b></span>`
+    : `<span style="color:#ef4444">No HP belum diisi — isi di tab Data</span>`;
   const undInfo  = s.undangan
-    ? `<span>🎟️ <b style="font-size:11px">${s.undangan}</b></span>`
-    : `<span style="color:#9ca3af">🎟️ Link undangan belum diisi</span>`;
+    ? `<span><b style="font-size:11px">${s.undangan}</b></span>`
+    : `<span style="color:#9ca3af">Link undangan belum diisi</span>`;
 
   const stackWrap = document.createElement('div');
   stackWrap.style.cssText = 'width:100%;max-width:480px;display:flex;flex-direction:column;';
@@ -518,7 +514,7 @@ async function simpanDataDirty() {
   }
   dirtyRows.clear();
   updateDirtyBadge();
-  btn.textContent = '💾 Simpan Perubahan'; btn.disabled = false;
+  btn.textContent = 'Simpan Perubahan'; btn.disabled = false;
   showToast('✅ Data tersimpan!');
 }
 
