@@ -356,7 +356,7 @@ function renderKartu() {
   c.innerHTML = '';
   if (!siswaList.length) { tampilState('📭','Tidak ada data siswa'); return; }
   if (currentIndex >= siswaList.length) {
-    c.innerHTML = `<div class="selesai-wrap"><div class="icon">🎉</div><h2>Semua Selesai!</h2><p>Semua undangan kelas ${kelasAktif} sudah diproses.</p></div>`;
+    c.innerHTML = `<div class="selesai-wrap"><h2>Semua Selesai!</h2><p>Semua undangan kelas ${kelasAktif} sudah diproses.</p></div>`;
     return;
   }
 
@@ -428,7 +428,7 @@ function renderKartu() {
 
   const hint = document.createElement('div');
   hint.className = 'swipe-hint';
-  hint.innerHTML = '<span>← Kembali</span><span style="opacity:0.4;margin:0 8px">|</span><span>Lanjut →</span>';
+  hint.innerHTML = '';
   stackWrap.appendChild(hint);
 
   c.appendChild(stackWrap);
