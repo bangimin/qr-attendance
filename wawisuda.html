@@ -104,6 +104,8 @@
   .data-actions { display:flex; gap:8px; margin-bottom:8px; }
   .btn-simpan-data { padding:9px 16px; background:linear-gradient(135deg,var(--wa),var(--wa-dark)); color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; }
   .btn-simpan-data:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-paste-data { padding:9px 16px; background:rgba(255,255,255,0.9); color:var(--wa-deep); border:1.5px solid var(--wa); border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .btn-paste-data:active { background:var(--wa-light); }
   .dirty-badge { font-size:11px; color:#92400e; background:#fef3c7; padding:4px 10px; border-radius:99px; display:none; align-items:center; }
   .dirty-badge.show { display:flex; }
   .table-wrap { flex:1; overflow:auto; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
@@ -219,6 +221,7 @@
     <div class="data-panel">
       <div class="data-actions">
         <button class="btn-simpan-data" id="btnSimpanData" onclick="simpanDataDirty()">Simpan Perubahan</button>
+        <button class="btn-paste-data" onclick="pasteClipboardHP()">Paste</button>
         <div class="dirty-badge" id="dirtyBadge">⚠️ Ada perubahan belum disimpan</div>
       </div>
       <div class="table-wrap">
@@ -518,6 +521,32 @@ async function simpanDataDirty() {
   showToast('✅ Data tersimpan!');
 }
 
+// ── PASTE CLIPBOARD HP (untuk HP/mobile) ─────────────────────
+async function pasteClipboardHP() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text.trim()) { showToast('⚠️ Clipboard kosong'); return; }
+    const rows = text.trim().split(/\r?\n/);
+    // Tanya mulai dari baris mana
+    const startIdx = 0; // selalu mulai dari baris pertama
+    rows.forEach((val, ri) => {
+      const idx = startIdx + ri;
+      if (idx >= siswaList.length) return;
+      // Ambil kolom pertama saja (kalau ada tab, abaikan sisanya)
+      const hp = val.split('\t')[0].trim();
+      if (hp) {
+        siswaList[idx].hp = hp;
+        dirtyRows.add(idx);
+      }
+    });
+    renderTabel();
+    updateDirtyBadge();
+    showToast(`✅ ${rows.length} No HP berhasil di-paste`);
+  } catch(e) {
+    showToast('⚠️ Izinkan akses clipboard di browser');
+  }
+}
+
 function updateDirtyBadge() {
   document.getElementById('dirtyBadge').classList.toggle('show', dirtyRows.size > 0);
 }
@@ -602,7 +631,7 @@ async function simpanTemplate(){
   const btn = document.getElementById('btnSimpanTpl');
   btn.textContent='Menyimpan...'; btn.disabled=true;
   try {
-    await api({action:'updateTemplate', template: encodeURIComponent(tpl)});
+    await api({action:'updateTemplate', template: tpl});
     showToast('✅ Template disimpan!');
     tutupModalTemplate();
     if(kelasAktif) await muatKelas();
