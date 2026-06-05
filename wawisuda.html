@@ -104,8 +104,23 @@
   .data-actions { display:flex; gap:8px; margin-bottom:8px; }
   .btn-simpan-data { padding:9px 16px; background:linear-gradient(135deg,var(--wa),var(--wa-dark)); color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; }
   .btn-simpan-data:disabled { opacity:0.5; cursor:not-allowed; }
-  .btn-paste-data { padding:9px 16px; background:rgba(255,255,255,0.9); color:var(--wa-deep); border:1.5px solid var(--wa); border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .btn-paste-data  { padding:9px 14px; background:white; color:var(--wa-deep); border:1.5px solid var(--wa); border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; }
   .btn-paste-data:active { background:var(--wa-light); }
+  .btn-copy-data   { padding:9px 14px; background:white; color:#1d4ed8; border:1.5px solid #bfdbfe; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; }
+  .btn-copy-data:active { background:#eff6ff; }
+  .btn-bersihkan   { padding:9px 14px; background:white; color:#dc2626; border:1.5px solid #fca5a5; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; }
+  .btn-bersihkan:active { background:#fef2f2; }
+  .data-actions { flex-wrap:wrap; }
+  /* Modal konfirmasi */
+  .konfirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+  .konfirm-overlay.show { opacity:1; pointer-events:all; }
+  .konfirm-box { background:white; border-radius:16px; padding:24px 20px; width:100%; max-width:320px; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+  .konfirm-icon { font-size:36px; margin-bottom:10px; }
+  .konfirm-title { font-size:16px; font-weight:800; color:var(--text); margin-bottom:6px; }
+  .konfirm-msg { font-size:13px; color:var(--sub); margin-bottom:20px; line-height:1.5; }
+  .konfirm-actions { display:flex; gap:8px; }
+  .btn-konfirm-ya   { flex:1; padding:12px; background:#dc2626; color:white; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; }
+  .btn-konfirm-batal { flex:1; padding:12px; background:#f3f4f6; color:var(--sub); border:none; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; }
   .dirty-badge { font-size:11px; color:#92400e; background:#fef3c7; padding:4px 10px; border-radius:99px; display:none; align-items:center; }
   .dirty-badge.show { display:flex; }
   .table-wrap { flex:1; overflow:auto; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
@@ -220,12 +235,14 @@
   <div class="tab-panel" id="tabData">
     <div class="data-panel">
       <div class="data-actions">
-        <button class="btn-simpan-data" id="btnSimpanData" onclick="simpanDataDirty()">Simpan Perubahan</button>
-        <select id="selPasteKolom" style="padding:9px 10px;border:1.5px solid var(--wa);border-radius:10px;font-size:13px;font-weight:600;color:var(--wa-deep);background:white;outline:none;cursor:pointer;">
-          <option value="hp">Paste ke No HP</option>
-          <option value="und">Paste ke Link Undangan</option>
+        <button class="btn-simpan-data" id="btnSimpanData" onclick="simpanDataDirty()">Simpan</button>
+        <select id="selKolom" style="padding:9px 10px;border:1.5px solid var(--wa);border-radius:10px;font-size:13px;font-weight:600;color:var(--wa-deep);background:white;outline:none;cursor:pointer;">
+          <option value="hp">No HP</option>
+          <option value="und">Link Undangan Digital</option>
         </select>
-        <button class="btn-paste-data" onclick="pasteClipboard()">Paste</button>
+        <button class="btn-paste-data"   onclick="pasteClipboard()">Paste</button>
+        <button class="btn-copy-data"    onclick="copyKolom()">Copy</button>
+        <button class="btn-bersihkan"    onclick="konfirmasiBersihkan()">Bersihkan</button>
         <div class="dirty-badge" id="dirtyBadge">⚠️ Ada perubahan belum disimpan</div>
       </div>
       <div class="table-wrap">
@@ -249,7 +266,18 @@
 
 </div>
 
-<!-- ── MODAL TEMPLATE ── -->
+<!-- ── MODAL KONFIRMASI BERSIHKAN ── -->
+<div class="konfirm-overlay" id="konfirmOverlay">
+  <div class="konfirm-box">
+    <div class="konfirm-icon">🗑️</div>
+    <div class="konfirm-title">Bersihkan Kolom?</div>
+    <div class="konfirm-msg" id="konfirmMsg">Semua data di kolom ini akan dikosongkan.</div>
+    <div class="konfirm-actions">
+      <button class="btn-konfirm-batal" onclick="tutupKonfirm()">Batal</button>
+      <button class="btn-konfirm-ya"    onclick="eksekusiBersihkan()">Ya, Bersihkan</button>
+    </div>
+  </div>
+</div> -->
 <div class="modal-overlay" id="modalTemplate" onclick="tutupModalJikaOverlay(event)">
   <div class="modal-box">
     <div class="modal-handle"></div>
@@ -527,7 +555,7 @@ async function simpanDataDirty() {
 
 // ── PASTE CLIPBOARD (untuk HP/mobile) ────────────────────────
 async function pasteClipboard() {
-  const field = document.getElementById('selPasteKolom').value;
+  const field = document.getElementById('selKolom').value;
   try {
     const text = await navigator.clipboard.readText();
     if (!text.trim()) { showToast('⚠️ Clipboard kosong'); return; }
@@ -538,19 +566,59 @@ async function pasteClipboard() {
       if (idx >= siswaList.length) return;
       const v = val.split('\t')[0].trim();
       if (v) {
-        if (field === 'hp')  siswaList[idx].hp       = v;
-        if (field === 'und') siswaList[idx].undangan  = v;
+        if (field === 'hp')  siswaList[idx].hp      = v;
+        if (field === 'und') siswaList[idx].undangan = v;
         dirtyRows.add(idx);
         count++;
       }
     });
     renderTabel();
     updateDirtyBadge();
-    const label = field === 'hp' ? 'No HP' : 'Link Undangan';
+    const label = field === 'hp' ? 'No HP' : 'Link Undangan Digital';
     showToast(`✅ ${count} baris di-paste ke ${label}`);
   } catch(e) {
     showToast('⚠️ Izinkan akses clipboard di browser');
   }
+}
+
+// ── COPY KOLOM KE CLIPBOARD ───────────────────────────────────
+async function copyKolom() {
+  const field = document.getElementById('selKolom').value;
+  if (!siswaList.length) { showToast('⚠️ Tidak ada data'); return; }
+  const label = field === 'hp' ? 'No HP' : 'Link Undangan Digital';
+  const teks = siswaList.map(s => field === 'hp' ? (s.hp||'') : (s.undangan||'')).join('\n');
+  try {
+    await navigator.clipboard.writeText(teks);
+    showToast(`✅ Kolom ${label} di-copy`);
+  } catch(e) {
+    showToast('⚠️ Gagal copy ke clipboard');
+  }
+}
+
+// ── BERSIHKAN KOLOM ───────────────────────────────────────────
+function konfirmasiBersihkan() {
+  if (!kelasAktif) { showToast('⚠️ Pilih kelas dulu'); return; }
+  const field = document.getElementById('selKolom').value;
+  const label = field === 'hp' ? 'No HP' : 'Link Undangan Digital';
+  document.getElementById('konfirmMsg').textContent =
+    `Semua data kolom "${label}" untuk kelas ${kelasAktif} akan dikosongkan.`;
+  document.getElementById('konfirmOverlay').classList.add('show');
+}
+function tutupKonfirm() {
+  document.getElementById('konfirmOverlay').classList.remove('show');
+}
+function eksekusiBersihkan() {
+  const field = document.getElementById('selKolom').value;
+  siswaList.forEach((_, idx) => {
+    if (field === 'hp')  siswaList[idx].hp      = '';
+    if (field === 'und') siswaList[idx].undangan = '';
+    dirtyRows.add(idx);
+  });
+  tutupKonfirm();
+  renderTabel();
+  updateDirtyBadge();
+  const label = field === 'hp' ? 'No HP' : 'Link Undangan Digital';
+  showToast(`🗑️ Kolom ${label} dibersihkan`);
 }
 
 function updateDirtyBadge() {
