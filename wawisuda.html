@@ -221,7 +221,11 @@
     <div class="data-panel">
       <div class="data-actions">
         <button class="btn-simpan-data" id="btnSimpanData" onclick="simpanDataDirty()">Simpan Perubahan</button>
-        <button class="btn-paste-data" onclick="pasteClipboardHP()">Paste</button>
+        <select id="selPasteKolom" style="padding:9px 10px;border:1.5px solid var(--wa);border-radius:10px;font-size:13px;font-weight:600;color:var(--wa-deep);background:white;outline:none;cursor:pointer;">
+          <option value="hp">Paste ke No HP</option>
+          <option value="und">Paste ke Link Undangan</option>
+        </select>
+        <button class="btn-paste-data" onclick="pasteClipboard()">Paste</button>
         <div class="dirty-badge" id="dirtyBadge">⚠️ Ada perubahan belum disimpan</div>
       </div>
       <div class="table-wrap">
@@ -521,27 +525,29 @@ async function simpanDataDirty() {
   showToast('✅ Data tersimpan!');
 }
 
-// ── PASTE CLIPBOARD HP (untuk HP/mobile) ─────────────────────
-async function pasteClipboardHP() {
+// ── PASTE CLIPBOARD (untuk HP/mobile) ────────────────────────
+async function pasteClipboard() {
+  const field = document.getElementById('selPasteKolom').value;
   try {
     const text = await navigator.clipboard.readText();
     if (!text.trim()) { showToast('⚠️ Clipboard kosong'); return; }
     const rows = text.trim().split(/\r?\n/);
-    // Tanya mulai dari baris mana
-    const startIdx = 0; // selalu mulai dari baris pertama
+    let count = 0;
     rows.forEach((val, ri) => {
-      const idx = startIdx + ri;
+      const idx = ri;
       if (idx >= siswaList.length) return;
-      // Ambil kolom pertama saja (kalau ada tab, abaikan sisanya)
-      const hp = val.split('\t')[0].trim();
-      if (hp) {
-        siswaList[idx].hp = hp;
+      const v = val.split('\t')[0].trim();
+      if (v) {
+        if (field === 'hp')  siswaList[idx].hp       = v;
+        if (field === 'und') siswaList[idx].undangan  = v;
         dirtyRows.add(idx);
+        count++;
       }
     });
     renderTabel();
     updateDirtyBadge();
-    showToast(`✅ ${rows.length} No HP berhasil di-paste`);
+    const label = field === 'hp' ? 'No HP' : 'Link Undangan';
+    showToast(`✅ ${count} baris di-paste ke ${label}`);
   } catch(e) {
     showToast('⚠️ Izinkan akses clipboard di browser');
   }
