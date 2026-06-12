@@ -327,7 +327,10 @@
         }
 
         if (response.nama) {
-          document.getElementById('last-scan').innerHTML = `<b>${response.nama}</b>`;
+          const labelHtml = response.label
+            ? `<br><span style="font-size:14px; color:#888;">${response.label}</span>`
+            : '';
+          document.getElementById('last-scan').innerHTML = `<b>${response.nama}</b>${labelHtml}`;
         }
 
         updateStatistik(response);
