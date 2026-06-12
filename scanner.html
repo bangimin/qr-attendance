@@ -328,9 +328,9 @@
 
         if (response.nama) {
           const labelHtml = response.label
-            ? `<br><span style="font-size:14px; color:#888;">${response.label}</span>`
+            ? `<span style="font-size:30px;">${response.label}</span><br>`
             : '';
-          document.getElementById('last-scan').innerHTML = `<b>${response.nama}</b>${labelHtml}`;
+          document.getElementById('last-scan').innerHTML = `<b>${labelHtml} ${response.nama}</b>`;
         }
 
         updateStatistik(response);
