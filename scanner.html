@@ -42,7 +42,7 @@
     }
     #sheet-selector select {
       padding: 8px 16px;
-      font-size: 80px;
+      font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
       background: #fff;
@@ -65,6 +65,12 @@
       color: #555;
       text-transform: uppercase;
       letter-spacing: 1px;
+    }
+    .stat-card p.subtitle {
+      font-size: 12px;
+      color: #888;
+      margin-top: -8px;
+      margin-bottom: 16px;
     }
     .stat-row {
       display: flex;
@@ -119,9 +125,7 @@
       border-bottom: 1px solid #eee;
       text-align: left;
     }
-    .stat-table tr:last-child td {
-      border-bottom: none;
-    }
+    .stat-table tr:last-child td { border-bottom: none; }
     .badge {
       display: inline-block;
       padding: 2px 8px;
@@ -138,12 +142,13 @@
 
 <h2>Scanner Wisuda</h2>
 
-<div id="sheet-selector" >
+<div id="sheet-selector">
+  <label>Sesi:</label>
   <select id="selected-sheet" onchange="onSheetChange()">
+    <option value="peserta">Peserta</option>
     <option value="ayah">Ayah</option>
     <option value="ibu">Ibu</option>
     <option value="makan">Makan</option>
-    <option value="peserta">Peserta</option>
   </select>
 </div>
 
@@ -151,6 +156,7 @@
 <div id="result"></div>
 <div id="last-scan"></div>
 
+<!-- Statistik total -->
 <div class="stat-card">
   <h3 id="stat-title">Statistik — Peserta</h3>
   <div class="stat-row">
@@ -172,6 +178,7 @@
   </div>
 </div>
 
+<!-- Statistik per jenjang -->
 <div class="stat-card">
   <h3>Statistik Per Jenjang</h3>
   <table class="stat-table">
@@ -189,6 +196,7 @@
   </table>
 </div>
 
+<!-- Statistik per kelas -->
 <div class="stat-card">
   <h3>Statistik Per Kelas</h3>
   <table class="stat-table">
@@ -207,8 +215,43 @@
   </table>
 </div>
 
+<!-- Statistik irisan orang tua — hanya muncul di sheet ayah/ibu -->
+<div class="stat-card" id="card-irisan" style="display:none;">
+  <h3>Kehadiran Orang Tua Siswa</h3>
+  <div class="stat-row">
+    <div class="stat-item">
+      <span class="stat-number hadir" id="irisan-hadir">-</span>
+      <span class="stat-label">Hadir</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number" id="irisan-total">-</span>
+      <span class="stat-label">Total Siswa</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number persen" id="irisan-persen">-</span>
+      <span class="stat-label">Persentase</span>
+    </div>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="irisan-bar"></div>
+  </div>
+  <table class="stat-table" style="margin-top:16px;">
+    <thead>
+      <tr>
+        <th>Jenjang</th>
+        <th>Hadir</th>
+        <th>Total</th>
+        <th>%</th>
+      </tr>
+    </thead>
+    <tbody id="irisan-jenjang-body">
+      <tr><td colspan="4" style="color:#aaa">Memuat...</td></tr>
+    </tbody>
+  </table>
+</div>
+
 <script>
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEG5x9RKqr2Dnb_o6sSh-QzZ6iiVVEiWIqQgdu-9fTytgw_O29dPQVk8Mv84LzG_g/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXH0NzoBeLjSgn4Z2x2jgsDHhjfcoCYSSjlEhpCTYu6c7jj-ZAa_59QyAw7A7TPeAn/exec";
 
   let scanning = true;
 
@@ -225,6 +268,8 @@
     document.getElementById('progress-bar').style.width = '0%';
     document.getElementById('stat-jenjang-body').innerHTML = '<tr><td colspan="4" style="color:#aaa">Memuat...</td></tr>';
     document.getElementById('stat-kelas-body').innerHTML = '<tr><td colspan="5" style="color:#aaa">Memuat...</td></tr>';
+    document.getElementById('card-irisan').style.display = 'none';
+    document.getElementById('irisan-jenjang-body').innerHTML = '<tr><td colspan="4" style="color:#aaa">Memuat...</td></tr>';
     loadStatistik();
   }
 
@@ -235,12 +280,38 @@
     return 'badge badge-other';
   }
 
+  function updateIrisan(irisan) {
+    if (!irisan) return;
+    const persen = irisan.total > 0 ? ((irisan.hadir / irisan.total) * 100).toFixed(1) : 0;
+    document.getElementById('irisan-hadir').textContent  = irisan.hadir;
+    document.getElementById('irisan-total').textContent  = irisan.total;
+    document.getElementById('irisan-persen').textContent = persen + '%';
+    document.getElementById('irisan-bar').style.width    = persen + '%';
+
+    const body = document.getElementById('irisan-jenjang-body');
+    if (irisan.jenjang && Object.keys(irisan.jenjang).length > 0) {
+      body.innerHTML = Object.entries(irisan.jenjang)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([nama, val]) => {
+          const p = val.total > 0 ? ((val.hadir / val.total) * 100).toFixed(1) : 0;
+          return `<tr>
+            <td><span class="${getBadgeClass(nama)}">${nama}</span></td>
+            <td>${val.hadir}</td>
+            <td>${val.total}</td>
+            <td>${p}%</td>
+          </tr>`;
+        }).join('');
+    } else {
+      body.innerHTML = '<tr><td colspan="4" style="color:#aaa">Tidak ada data</td></tr>';
+    }
+  }
+
   function updateStatistik(data) {
     if (data.total === undefined) return;
 
     const persen = data.total > 0 ? ((data.hadir / data.total) * 100).toFixed(1) : 0;
-    document.getElementById('stat-hadir').textContent = data.hadir;
-    document.getElementById('stat-total').textContent = data.total;
+    document.getElementById('stat-hadir').textContent  = data.hadir;
+    document.getElementById('stat-total').textContent  = data.total;
     document.getElementById('stat-persen').textContent = persen + '%';
     document.getElementById('progress-bar').style.width = persen + '%';
 
@@ -277,6 +348,16 @@
         }).join('');
     } else {
       kelasBody.innerHTML = '<tr><td colspan="5" style="color:#aaa">Tidak ada data</td></tr>';
+    }
+
+    // Tampilkan/sembunyikan card irisan
+    const sheet = getSelectedSheet();
+    const cardIrisan = document.getElementById('card-irisan');
+    if (sheet === 'ayah' || sheet === 'ibu') {
+      cardIrisan.style.display = 'block';
+      if (data.irisan) updateIrisan(data.irisan);
+    } else {
+      cardIrisan.style.display = 'none';
     }
   }
 
@@ -328,9 +409,9 @@
 
         if (response.nama) {
           const labelHtml = response.label
-            ? `<span style="font-size:30px;">${response.label}</span><br>`
+            ? `<br><span style="font-size:14px; color:#888;">${response.label}</span>`
             : '';
-          document.getElementById('last-scan').innerHTML = `<b>${labelHtml} ${response.nama}</b>`;
+          document.getElementById('last-scan').innerHTML = `<b>${response.nama}</b>${labelHtml}`;
         }
 
         updateStatistik(response);
